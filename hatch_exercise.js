@@ -1,7 +1,17 @@
-
 const express = require("express");
+const bodyParser = require('body-parser');
+const fs = require('fs');
 
 const app = express();
+
+const brands = [
+    "Chevrolet", "Dodge", "Ford", "GMC", "Honda"
+];
+
+var quotes = JSON.parse(fs.readFileSync('quotes.json', 'utf8'));
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.post('/bestOptionsPerYear', function (req, res) {
    res.send("hello from bestOptionsPerYear");
