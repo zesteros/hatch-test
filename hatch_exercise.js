@@ -21,7 +21,7 @@ app.post('/bestOptionsPerYear', function (req, res) {
             "status": 500,
             "message": "Field year is missing"
         };
-        res.send(response);
+        res.status(response.status).send(response);
     } else {
         findBestOptionPerYear(res, req.body.year);
     }
@@ -77,23 +77,55 @@ app.post('/quoteCar', function (req, res) {
     if(!req.body.brand || req.body.brand == undefined){
       response.status = 500;
       response.message = "Brand is missing";
-      res.send(response);
+      res.status(response.status).send(response);
     } else if(!req.body.year || req.body.year == undefined){
         response.status = 500;
         response.message = "Year is missing";
-        res.send(response);
-    } else if(!req.body.hasAC || req.body.hasAC == undefined){
+        res.status(response.status).send(response);
+    } else if(req.body.hasAC == undefined){
         response.status = 500;
         response.message = "hasAC is missing";
-        res.send(response);
+        res.status(response.status).send(response);
     } else {
  
+        var coverages = getCoverageTypes();
+
         sortQuotes();
+
         quotes.forEach(quote => {
             if(quote.brand === req.body.brand && isInYearRange(req.body.year, quote.yearRange)){
-                
+                coverages.forEach(coverageElement => {
+                    if(quote.coverageType === coverageElement.coverageType && !coverageElement.obtained){
+                        coverageElement.bestOption = quote;
+                        if(req.body.hasAC){
+                            var newPrice = unformatNumber(coverageElement.bestOption.price) + 
+                            unformatNumber(coverageElement.bestOption.extraCoveragePrice);
+                            coverageElement.bestOption.price = formatMoney(newPrice);
+                        }
+                        /**
+                         * mark the cheaper budget as obtained
+                         */
+                        coverageElement.obtained = true;
+                    }
+                });
             }
         });
+
+        var quotesResult = [];
+
+        coverages.forEach(coverageElement => {
+            if(coverageElement.bestOption != null)
+                quotesResult.push(coverageElement.bestOption);
+        });
+
+        response.data = quotesResult;
+
+        if(response.data.length == 0){
+            response.status = 204;
+            response.message = "We couldn't find quotes with the parameteres given";
+        }
+
+        res.status(response.status).send(response);
     }
 });
 
@@ -146,6 +178,22 @@ function getCoverageTypes(){
         {"coverageType": "High", "obtained": false, "bestOption": null}
     ];
 }
+
+function formatMoney(amount, decimalCount = 2, decimal = ".", thousands = ",") {
+    try {
+      decimalCount = Math.abs(decimalCount);
+      decimalCount = isNaN(decimalCount) ? 2 : decimalCount;
+  
+      const negativeSign = amount < 0 ? "-" : "";
+  
+      let i = parseInt(amount = Math.abs(Number(amount) || 0).toFixed(decimalCount)).toString();
+      let j = (i.length > 3) ? i.length % 3 : 0;
+  
+      return negativeSign + (j ? i.substr(0, j) + thousands : '') + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousands) + (decimalCount ? decimal + Math.abs(amount - i).toFixed(decimalCount).slice(2) : "");
+    } catch (e) {
+      console.log(e)
+    }
+  };
 
 app.listen(8091, () => {
  console.log("El servidor está inicializado en el puerto 8091");
