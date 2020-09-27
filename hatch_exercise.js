@@ -32,7 +32,14 @@ app.post('/bestOptionsPerYear', function (req, res) {
  * @param {response} res 
  * @param {int} year 
  */
-function findBestOptionPerYear(res, year){}
+function findBestOptionPerYear(res, year){
+    /**
+     * sort all the prices from cheaper to expensive
+     */
+    quotes.sort(function(a, b) {
+        return unformatNumber(a.price) - unformatNumber(b.price);
+    });
+}
 
 app.post('/quoteCar', function (req, res) {
   res.send("hello from quoteCar")
