@@ -39,6 +39,32 @@ function findBestOptionPerYear(res, year){
     quotes.sort(function(a, b) {
         return unformatNumber(a.price) - unformatNumber(b.price);
     });
+
+        /**
+     * list coverages for group below
+     */
+    var coverage = [
+        {"coverageType": "RC", "obtained": false, "bestOption": null}, 
+        {"coverageType": "Low", "obtained": false, "bestOption": null}, 
+        {"coverageType": "Mid", "obtained": false, "bestOption": null}, 
+        {"coverageType": "High", "obtained": false, "bestOption": null}
+    ]
+
+    /**
+     * for each budget compare if is the cheaper of each coverage type
+     */
+    quotes.forEach(quote => {
+ 
+    });
+    /**
+     * send result
+     */
+    var result = {
+        "status": 200,
+        "message": "Best option obtained.",
+        "bestOptions": coverage
+    };
+    res.send(result);
 }
 
 app.post('/quoteCar', function (req, res) {
