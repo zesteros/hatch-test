@@ -54,7 +54,17 @@ function findBestOptionPerYear(res, year){
      * for each budget compare if is the cheaper of each coverage type
      */
     quotes.forEach(quote => {
- 
+        if(isInYearRange(year, quote.yearRange) && isAvailableBrand(quote.brand)){
+            coverage.forEach(coverageElement => {
+                if(quote.coverageType === coverageElement.coverageType && !coverageElement.obtained){
+                    coverageElement.bestOption = quote;
+                    /**
+                     * mark the cheaper budget as obtained
+                     */
+                    coverageElement.obtained = true;
+                }
+            });
+        }
     });
     /**
      * send result
@@ -78,6 +88,29 @@ app.post('/quoteCar', function (req, res) {
  */
 function unformatNumber(number){
     return Number(number.replace(/[^0-9.-]+/g,""));
+}
+
+/**
+ * check if input is between year range
+ * @param {int} year 
+ * @param {int array} yearRange 
+ */
+function isInYearRange(year, yearRange){
+    return year >= yearRange[0] && year <= yearRange[1];
+}
+
+/**
+ * Check brand
+ * @param {String} brand 
+ */
+function isAvailableBrand(brand){
+    var isValidBrand = false;
+    brands.forEach(element => {
+        if(brand === element) {
+          isValidBrand = true;
+        }
+    });
+    return isValidBrand;
 }
 
 app.listen(8091, () => {
