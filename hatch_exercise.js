@@ -14,8 +14,25 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.post('/bestOptionsPerYear', function (req, res) {
-   res.send("hello from bestOptionsPerYear");
+    var year = req.body.year;
+    
+    if(!year || year == undefined){
+        var response = {
+            "status": 500,
+            "message": "Field year is missing"
+        };
+        res.send(response);
+    } else {
+        findBestOptionPerYear(res, req.body.year);
+    }
 });
+
+/**
+ * find best insurance carrier by year
+ * @param {response} res 
+ * @param {int} year 
+ */
+function findBestOptionPerYear(res, year){}
 
 app.post('/quoteCar', function (req, res) {
   res.send("hello from quoteCar")
