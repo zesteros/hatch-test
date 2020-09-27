@@ -68,12 +68,21 @@ function findBestOptionPerYear(res, year){
     res.send(result);
 }
 
+/**
+ * endpoint for quote car
+ */
 app.post('/quoteCar', function (req, res) {
+    /**
+     * start the response with status 200, we need to be optimist
+     */
     var response = {
         "status": 200,
         "message": "OK",
         "data": []
     };
+    /**
+     * first of all validate all fields
+     */
     if(!req.body.brand || req.body.brand == undefined){
       response.status = 500;
       response.message = "Brand is missing";
@@ -88,10 +97,19 @@ app.post('/quoteCar', function (req, res) {
         res.status(response.status).send(response);
     } else {
  
+        /**
+         * get again coverage types
+         */
         var coverages = getCoverageTypes();
 
+        /**
+         * sort quotes by lowest price
+         */
         sortQuotes();
 
+        /**
+         * is almost the same logic as quotes by year but here we need the new price (if apply)
+         */
         quotes.forEach(quote => {
             if(quote.brand === req.body.brand && isInYearRange(req.body.year, quote.yearRange)){
                 coverages.forEach(coverageElement => {
@@ -111,8 +129,15 @@ app.post('/quoteCar', function (req, res) {
             }
         });
 
+        /**
+         * create clean array for bussiness rule purposes
+         */
+
         var quotesResult = [];
 
+        /**
+         * if we have best option push to new array
+         */
         coverages.forEach(coverageElement => {
             if(coverageElement.bestOption != null)
                 quotesResult.push(coverageElement.bestOption);
@@ -120,6 +145,9 @@ app.post('/quoteCar', function (req, res) {
 
         response.data = quotesResult;
 
+        /**
+         * if we doesn't have any quote send 204 no content status.
+         */
         if(response.data.length == 0){
             response.status = 204;
             response.message = "We couldn't find quotes with the parameteres given";
@@ -161,6 +189,9 @@ function isAvailableBrand(brand){
     return isValidBrand;
 }
 
+/**
+ * sort quotes by price
+ */
 function sortQuotes(){
      /**
      * sort all the prices from cheaper to expensive
@@ -170,6 +201,9 @@ function sortQuotes(){
     });
 }
 
+/**
+ * get coverage types
+ */
 function getCoverageTypes(){
     return [
         {"coverageType": "RC", "obtained": false, "bestOption": null}, 
@@ -179,6 +213,13 @@ function getCoverageTypes(){
     ];
 }
 
+/**
+ * 
+ * @param {number} amount 
+ * @param {text} decimalCount 
+ * @param {text} decimal 
+ * @param {text} thousands 
+ */
 function formatMoney(amount, decimalCount = 2, decimal = ".", thousands = ",") {
     try {
       decimalCount = Math.abs(decimalCount);
