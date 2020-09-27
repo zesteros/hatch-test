@@ -46,15 +46,7 @@ function findBestOptionPerYear(res, year){
      */
     quotes.forEach(quote => {
         if(isInYearRange(year, quote.yearRange) && isAvailableBrand(quote.brand)){
-            coverage.forEach(coverageElement => {
-                if(quote.coverageType === coverageElement.coverageType && !coverageElement.obtained){
-                    coverageElement.bestOption = quote;
-                    /**
-                     * mark the cheaper budget as obtained
-                     */
-                    coverageElement.obtained = true;
-                }
-            });
+            getCoverageTypeCheaper(coverage, quote);
         }
     });
     /**
@@ -102,6 +94,14 @@ app.post('/quoteCar', function (req, res) {
          */
         var coverages = getCoverageTypes();
 
+        /**+
+         * if we have AC sum extra coverage price for all quotes
+         */
+        if(req.body.hasAC){
+            sumExtraCoveragePrice();
+        }
+
+
         /**
          * sort quotes by lowest price
          */
@@ -112,20 +112,7 @@ app.post('/quoteCar', function (req, res) {
          */
         quotes.forEach(quote => {
             if(quote.brand === req.body.brand && isInYearRange(req.body.year, quote.yearRange)){
-                coverages.forEach(coverageElement => {
-                    if(quote.coverageType === coverageElement.coverageType && !coverageElement.obtained){
-                        coverageElement.bestOption = quote;
-                        if(req.body.hasAC){
-                            var newPrice = unformatNumber(coverageElement.bestOption.price) + 
-                            unformatNumber(coverageElement.bestOption.extraCoveragePrice);
-                            coverageElement.bestOption.price = formatMoney(newPrice);
-                        }
-                        /**
-                         * mark the cheaper budget as obtained
-                         */
-                        coverageElement.obtained = true;
-                    }
-                });
+                getCoverageTypeCheaper(coverages, quote);
             }
         });
 
@@ -154,6 +141,11 @@ app.post('/quoteCar', function (req, res) {
         }
 
         res.status(response.status).send(response);
+
+        /**
+         * we need new quotes because we are going to edit the price (if necessary)
+         */
+        quotes = req.body.hasAC ? JSON.parse(fs.readFileSync('quotes.json', 'utf8')) : quotes;
     }
 });
 
@@ -235,6 +227,29 @@ function formatMoney(amount, decimalCount = 2, decimal = ".", thousands = ",") {
       console.log(e)
     }
   };
+
+/**
+* sum the extra coverage price (if applies)
+*/
+function sumExtraCoveragePrice(){
+    quotes.forEach(quote => {
+        var newPrice = unformatNumber(quote.price) + 
+        unformatNumber(quote.extraCoveragePrice);
+        quote.price = formatMoney(newPrice);
+    });
+}
+
+function getCoverageTypeCheaper(coverages, quote){
+    coverages.forEach(coverageElement => {
+        if(quote.coverageType === coverageElement.coverageType && !coverageElement.obtained){
+            coverageElement.bestOption = quote;
+            /**
+             * mark the cheaper budget as obtained
+             */
+            coverageElement.obtained = true;
+        }
+    });
+}
 
 app.listen(8091, () => {
  console.log("El servidor está inicializado en el puerto 8091");
