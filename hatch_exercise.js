@@ -45,6 +45,15 @@ app.post('/quoteCar', function (req, res) {
   res.send("hello from quoteCar")
 });
 
+
+/**
+ * unformat currency number
+ * @param {String} number 
+ */
+function unformatNumber(number){
+    return Number(number.replace(/[^0-9.-]+/g,""));
+}
+
 app.listen(8091, () => {
  console.log("El servidor está inicializado en el puerto 8091");
 });
