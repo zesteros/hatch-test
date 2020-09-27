@@ -33,22 +33,13 @@ app.post('/bestOptionsPerYear', function (req, res) {
  * @param {int} year 
  */
 function findBestOptionPerYear(res, year){
-    /**
-     * sort all the prices from cheaper to expensive
-     */
-    quotes.sort(function(a, b) {
-        return unformatNumber(a.price) - unformatNumber(b.price);
-    });
+   
+    sortQuotes();
 
-        /**
+    /**
      * list coverages for group below
      */
-    var coverage = [
-        {"coverageType": "RC", "obtained": false, "bestOption": null}, 
-        {"coverageType": "Low", "obtained": false, "bestOption": null}, 
-        {"coverageType": "Mid", "obtained": false, "bestOption": null}, 
-        {"coverageType": "High", "obtained": false, "bestOption": null}
-    ]
+    var coverage = getCoverageTypes();
 
     /**
      * for each budget compare if is the cheaper of each coverage type
@@ -78,7 +69,32 @@ function findBestOptionPerYear(res, year){
 }
 
 app.post('/quoteCar', function (req, res) {
-  res.send("hello from quoteCar")
+    var response = {
+        "status": 200,
+        "message": "OK",
+        "data": []
+    };
+    if(!req.body.brand || req.body.brand == undefined){
+      response.status = 500;
+      response.message = "Brand is missing";
+      res.send(response);
+    } else if(!req.body.year || req.body.year == undefined){
+        response.status = 500;
+        response.message = "Year is missing";
+        res.send(response);
+    } else if(!req.body.hasAC || req.body.hasAC == undefined){
+        response.status = 500;
+        response.message = "hasAC is missing";
+        res.send(response);
+    } else {
+ 
+        sortQuotes();
+        quotes.forEach(quote => {
+            if(quote.brand === req.body.brand && isInYearRange(req.body.year, quote.yearRange)){
+                
+            }
+        });
+    }
 });
 
 
@@ -111,6 +127,24 @@ function isAvailableBrand(brand){
         }
     });
     return isValidBrand;
+}
+
+function sortQuotes(){
+     /**
+     * sort all the prices from cheaper to expensive
+     */
+    quotes.sort(function(a, b) {
+        return unformatNumber(a.price) - unformatNumber(b.price);
+    });
+}
+
+function getCoverageTypes(){
+    return [
+        {"coverageType": "RC", "obtained": false, "bestOption": null}, 
+        {"coverageType": "Low", "obtained": false, "bestOption": null}, 
+        {"coverageType": "Mid", "obtained": false, "bestOption": null}, 
+        {"coverageType": "High", "obtained": false, "bestOption": null}
+    ];
 }
 
 app.listen(8091, () => {
