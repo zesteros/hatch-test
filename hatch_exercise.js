@@ -239,6 +239,11 @@ function sumExtraCoveragePrice(){
     });
 }
 
+/**
+ * 
+ * @param {coverages array} coverages 
+ * @param {quote} quote 
+ */
 function getCoverageTypeCheaper(coverages, quote){
     coverages.forEach(coverageElement => {
         if(quote.coverageType === coverageElement.coverageType && !coverageElement.obtained){
